@@ -39,10 +39,10 @@ try:
 except ImportError:
   logging.warning('jax_triton not found, please `pip install jax-triton`')
 # pylint: enable=g-import-not-at-top
-import transformer_engine
-from transformer_engine.jax.fused_attn import *
-from transformer_engine.jax.fused_attn import _self_fused_attn
-from transformer_engine.jax.fused_attn import AttnBiasType, AttnMaskType
+# import transformer_engine
+# from transformer_engine.jax.fused_attn import *
+# from transformer_engine.jax.fused_attn import _self_fused_attn
+# from transformer_engine.jax.fused_attn import AttnBiasType, AttnMaskType
 import jax.numpy as jnp
 
 JTensor = pytypes.JTensor
