@@ -1179,6 +1179,7 @@ class DotProductAttention(base_layer.BaseLayer):
   zero_fully_masked: bool = False
   qk_einsum_tpl: LayerTpl = template_field(base_ops.EinsumOp)
   pv_einsum_tpl: LayerTpl = template_field(base_ops.EinsumOp)
+  mha_mask_addition_pattern: bool = True
   per_dim_scale_tpl: LayerTpl = template_field(PerDimScale)
   causal_depthwise_conv1d_tpl: LayerTpl = template_field(CausalDepthwiseConv1D)
   ln_tpl: LayerTpl | None = template_field(None)
@@ -1528,7 +1529,11 @@ class DotProductAttention(base_layer.BaseLayer):
     # Attention softmax is always carried out in fp32.
     logits = logits.astype(jnp.float32)
     # Apply attention masking
-    padded_logits = py_utils.apply_mask_to_logits(logits, atten_mask)
+    if self.mha_mask_addition_pattern:
+      padded_logits = logits + atten_mask.astype(jnp.float32)
+    else:
+      padded_logits = py_utils.apply_mask_to_logits(logits, atten_mask)
+
     if self.attention_mask_summary:
       self.add_summary('attention_mask', atten_mask)
     if self.attention_extra_logit is None:

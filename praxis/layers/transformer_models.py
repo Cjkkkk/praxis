@@ -823,6 +823,21 @@ class TransformerLm(base_layer.BaseLayer):
       return output
     else:
       return self.compute_loss(output, labels, input_ids=input_ids)
+      # import flax
+      # loss = self.compute_loss(output, labels, input_ids=input_ids)
+      # # no_paddings = (paddings.sum(axis=-1) < 1280).all()
+      # no_paddings = (paddings.sum() == 0)
+      # jax.debug.print("no_paddings = {}", no_paddings)
+
+      # def true_fn(mdl, x):
+      #   return x
+
+      # def false_fn(mdl, x):
+      #   x = jax.tree_map(lambda xx: jnp.zeros_like(xx), x)
+      #   return x
+
+      # final_loss = flax.linen.cond(no_paddings, true_fn, false_fn, self, loss)
+      # return final_loss
 
   def _emb_lookup(self, input_ids):
     """Token emb lookup.
