@@ -133,16 +133,16 @@ class GpuTritonFusedDotProductAttention(attentions.DotProductAttention):
         check_rep=False,
     )
     def sharded_mha(q, k, v):
-      # return attention.mha(
-      #     q, k, v, sm_scale=1.0 / math.sqrt(h), backward_pass_impl=bwd_pass_impl
-      # )
-      q = jnp.reshape(q, (*q.shape[:2], 1, *q.shape[-2:]))
-      k = jnp.reshape(k, (*q.shape[:2], 1, *q.shape[-2:]))
-      v = jnp.reshape(v, (*q.shape[:2], 1, *q.shape[-2:]))
-      qkv = jnp.concatenate((q, k, v), axis=2)
-      return _self_fused_attn(
-            qkv, None, jnp.zeros((1, 1, 1, 1)), None,
-            AttnBiasType.NO_BIAS, AttnMaskType.CAUSAL_MASK, 1.0, 0., True)
+      return attention.mha(
+          q, k, v, sm_scale=1.0 / math.sqrt(h), backward_pass_impl=bwd_pass_impl
+      )
+      # q = jnp.reshape(q, (*q.shape[:2], 1, *q.shape[-2:]))
+      # k = jnp.reshape(k, (*q.shape[:2], 1, *q.shape[-2:]))
+      # v = jnp.reshape(v, (*q.shape[:2], 1, *q.shape[-2:]))
+      # qkv = jnp.concatenate((q, k, v), axis=2)
+      # return _self_fused_attn(
+      #       qkv, None, jnp.zeros((1, 1, 1, 1)), None,
+      #       AttnBiasType.NO_BIAS, AttnMaskType.CAUSAL_MASK, 1.0, 0., True)
     encoded = sharded_mha(query, key, value)
     encoded = self._shard_blnh(encoded)
     # TODO(zhangqiaorjc): return probs.
