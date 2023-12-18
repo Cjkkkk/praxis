@@ -39,11 +39,12 @@ try:
 except ImportError:
   logging.warning('jax_triton not found, please `pip install jax-triton`')
 # pylint: enable=g-import-not-at-top
-# import transformer_engine
+# import transformer_enginescratch/jax/jax/experimental/fused_attention_stableHLO.py
 # from transformer_engine.jax.fused_attn import *
 # from transformer_engine.jax.fused_attn import _self_fused_attn
 # from transformer_engine.jax.fused_attn import AttnBiasType, AttnMaskType
 import jax.numpy as jnp
+from .fused_attention_stableHLO import dot_product_attention
 
 JTensor = pytypes.JTensor
 
@@ -133,9 +134,12 @@ class GpuTritonFusedDotProductAttention(attentions.DotProductAttention):
         check_rep=False,
     )
     def sharded_mha(q, k, v):
-      return attention.mha(
-          q, k, v, sm_scale=1.0 / math.sqrt(h), backward_pass_impl=bwd_pass_impl
-      )
+      # return attention.mha(
+      #     q, k, v, segment_ids=None, causal=True, sm_scale=1.0, backward_pass_impl='triton'
+      #     #q, k, v, segment_ids=None, causal=True, sm_scale=1.0 / math.sqrt(h), backward_pass_impl='triton'
+      # )
+      print(q.shape)
+      return dot_product_attention(q, k, v, scale=1.0, bias=None, mask=None, is_cauasl_mask=True)
       # q = jnp.reshape(q, (*q.shape[:2], 1, *q.shape[-2:]))
       # k = jnp.reshape(k, (*q.shape[:2], 1, *q.shape[-2:]))
       # v = jnp.reshape(v, (*q.shape[:2], 1, *q.shape[-2:]))
