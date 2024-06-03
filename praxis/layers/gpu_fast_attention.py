@@ -118,7 +118,7 @@ class GpuCudnnFusedDotProductAttention(attentions.DotProductAttention):
         query, key, value, relative_bias, scale=logits_scale,
         mask_type=MaskType.CAUSAL if self.is_causal else MaskType.NO_MASK,
         dropout_rate=self.atten_dropout_prob,
-        qkv_layout='BTNH', is_training=not self.do_eval,
+        qkv_layout='BTNH',
     )
     encoded = self._shard_blnh(encoded)
     return encoded, None
