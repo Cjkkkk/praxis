@@ -892,26 +892,15 @@ class MultiQueryDotProductAttention(base_layer.BaseLayer):
       b, t, n, h = query_proj.shape
       _, s, nk, _ = key_proj.shape
       assert n % nk == 0
-      v_q = jnp.reshape(query_proj, (b, t, nk, n // nk, h))
-      if relative_bias is not None:
-        v_rb = jnp.reshape(relative_bias, (b, nk, n // nk, t, s))
-      else:
-        v_rb = None
-      with self._context_for_kv_vmap():
-        encoded, atten_probs = jax.vmap(
-            self._dot_atten,
-            in_axes=(2, 2, 2, None, 1),
-            out_axes=(2, 1),
-        )(
-            v_q,
-            key_proj,
-            value_proj,
-            atten_mask,
-            v_rb,
-        )
-      encoded = self._shard_blnh(jnp.reshape(encoded, (b, t, n, h)))
-      if atten_probs is not None:
-        atten_probs = jnp.reshape(atten_probs, (b, t, n, s))
+
+      local_window_size = (4095, 0) if self.enable_swa else None
+      encoded = jax.nn.dot_product_attention(
+          query_proj, key_proj, value_proj,
+          bias=None, mask=None,
+          scale=None, is_causal=True,
+          local_window_size=local_window_size,
+          implementation='cudnn')
+      atten_probs = None
 
     # Post projection
     encoded = self.post(encoded)
